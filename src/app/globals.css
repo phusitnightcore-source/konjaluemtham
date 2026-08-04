@@ -1,0 +1,1784 @@
+@import "tailwindcss";
+
+/* ============================================================
+   ก่อนจะลืมถาม - Design Tokens (spec C2)
+   ============================================================ */
+:root {
+  /* ---- Color ---- */
+  --color-primary: #c98f68;
+  --color-primary-hover: #b77b56;
+  --color-primary-soft: #f5e9e0; /* chip / selected bg */
+
+  /* accent ตัวที่สอง (spec D3) - ใช้เฉพาะ "ของที่เป็นของผู้ใช้" */
+  --color-keepsake: #5e6e5a;
+  --color-keepsake-soft: #e7ece5;
+
+  --color-bg: #fbf8f5;
+  --color-card: #fffdfb;
+
+  --color-text: #3f332d;
+  --color-text-secondary: #6e625d;
+  --color-text-tertiary: #9a8f89; /* placeholder / caption */
+
+  --color-border: #eee6df;
+  --color-border-strong: #dcd1c8; /* focus / hover border */
+
+  --color-success: #7a9e7e;
+  --color-warning: #c9a15a;
+  --color-error: #b25e5e;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 12px 40px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.08);
+
+  /* ---- Type ---- */
+  --font: var(--font-noto-thai), -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-h1: 40px;
+  --text-h2: 32px;
+  --text-h3: 24px;
+  --text-body: 18px;
+  --text-small: 16px;
+  --leading: 1.7;
+
+  /* ---- Space (8pt scale) ---- */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 96px;
+  --space-8: 128px;
+
+  /* ---- Radius ---- */
+  --radius-card: 28px;
+  --radius-button: 18px;
+  --radius-input: 18px;
+  --radius-dialog: 32px;
+  --radius-chip: 999px;
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 250ms;
+  --dur-page: 400ms;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  /* clip แนวนอนที่ระดับจอ - การ์ดที่ปลิวออกไปปลิวสุดขอบจอแล้วค่อยหาย
+     ใช้ clip (ไม่ใช่ hidden) จึงไม่สร้าง scroll container = navbar sticky ไม่พัง */
+  overflow-x: clip;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  line-height: var(--leading);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* กฎภาษาไทย (spec C3): ห้าม justify, ห้าม weight < 400 */
+p,
+h1,
+h2,
+h3,
+li {
+  text-align: left;
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.35;
+  font-weight: 700;
+}
+h1 {
+  font-size: var(--text-h1);
+  font-weight: 700;
+}
+h2 {
+  font-size: var(--text-h2);
+  font-weight: 600;
+}
+h3 {
+  font-size: var(--text-h3);
+  font-weight: 600;
+}
+p {
+  margin: 0;
+  max-width: 62ch; /* spec C3: บรรทัดสูงสุด 62 ตัวอักษร */
+}
+
+a {
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --text-h1: 30px;
+    --text-h2: 26px;
+    --text-h3: 21px;
+    --text-body: 17px;
+  }
+}
+
+/* ============================================================
+   Layout helpers
+   ============================================================ */
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+.container--wide {
+  max-width: 1120px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.center-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}
+.tertiary {
+  color: var(--color-text-tertiary);
+}
+.eyebrow {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   Navbar (spec C5)
+   ============================================================ */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid transparent;
+}
+.navbar__brand {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* ============================================================
+   Button (spec C5)
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: 56px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-button);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 3px;
+}
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+.btn--primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+.btn--secondary {
+  background: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.btn--secondary:hover {
+  border-color: var(--color-text-secondary);
+  transform: translateY(-1px);
+}
+.btn--ghost {
+  height: 48px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  padding: 0 var(--space-2);
+}
+.btn--ghost:hover {
+  color: var(--color-text);
+}
+.btn--keepsake {
+  background: var(--color-keepsake);
+  color: #fff;
+}
+.btn--keepsake:hover {
+  background: color-mix(in srgb, var(--color-keepsake) 85%, black);
+  transform: translateY(-1px);
+}
+.btn--block {
+  width: 100%;
+}
+.btn--danger {
+  background: transparent;
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+.btn--danger:hover {
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+}
+
+@media (max-width: 640px) {
+  .btn {
+    height: 52px;
+  }
+}
+
+/* ============================================================
+   Chip (spec C5)
+   ============================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px; /* touch target */
+  padding: 0 20px;
+  border-radius: var(--radius-chip);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+.chip:hover {
+  border-color: var(--color-border-strong);
+}
+.chip:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.chip[aria-pressed="true"],
+.chip--selected {
+  background: var(--color-primary-soft);
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-text);
+}
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+/* ============================================================
+   Input / Textarea (spec C5)
+   ============================================================ */
+.input,
+.textarea {
+  width: 100%;
+  border-radius: var(--radius-input);
+  padding: 16px 20px;
+  font-family: inherit;
+  font-size: 18px;
+  line-height: var(--leading);
+  color: var(--color-text);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition: border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.textarea {
+  resize: vertical;
+  min-height: 160px;
+}
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(201, 143, 104, 0.12);
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================
+   Card (spec C5)
+   ============================================================ */
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
+}
+
+.qcard {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 48px 40px;
+  min-height: 380px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.qcard__label {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+.qcard__question {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.6; /* spec C3: ไทยมีวรรณยุกต์ */
+  color: var(--color-text);
+}
+@media (max-width: 640px) {
+  .qcard {
+    padding: 32px 24px;
+    min-height: 320px;
+  }
+  .qcard__question {
+    font-size: 24px;
+  }
+}
+
+/* ============================================================
+   Stepper (spec C5) - จุดกลม ไม่ใช่เปอร์เซ็นต์
+   ============================================================ */
+.stepper {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+}
+.stepper__dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1.5px solid var(--color-border-strong);
+  transition: all var(--dur-fast) var(--ease);
+}
+.stepper__dot--active {
+  width: 24px;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.stepper__dot--done {
+  background: var(--color-border-strong);
+  border-color: var(--color-border-strong);
+}
+
+/* ============================================================
+   Bag / keepsake counter
+   ============================================================ */
+.bag-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--color-keepsake-soft);
+  color: var(--color-keepsake);
+  font-size: var(--text-small);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.bag-count:hover {
+  border-color: color-mix(in srgb, var(--color-keepsake) 30%, transparent);
+}
+
+/* ============================================================
+   Bottom sheet / dialog (spec C5)
+   ============================================================ */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(63, 51, 45, 0.32);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: backdrop-in var(--dur-fast) var(--ease);
+}
+@media (min-width: 641px) {
+  .backdrop {
+    align-items: center;
+  }
+}
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  background: var(--color-card);
+  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+  padding: var(--space-4);
+  box-shadow: var(--shadow-lg);
+  animation: sheet-up 300ms var(--ease);
+}
+@media (min-width: 641px) {
+  .sheet {
+    border-radius: var(--radius-dialog);
+    margin: var(--space-3);
+    animation: sheet-pop var(--dur-fast) var(--ease);
+  }
+}
+
+/* ============================================================
+   Timeline (Meal planning, spec C6.4)
+   ============================================================ */
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+.timeline__row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: var(--space-2);
+}
+.timeline__marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timeline__num {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+  display: grid;
+  place-items: center;
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+.timeline__line {
+  flex: 1;
+  width: 1px;
+  background: var(--color-border);
+  margin: 6px 0;
+}
+.timeline__body {
+  padding-bottom: var(--space-4);
+}
+
+/* checklist round checkbox */
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 0;
+  cursor: pointer;
+  font-size: var(--text-body);
+}
+.check__box {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border-strong);
+  display: grid;
+  place-items: center;
+  transition: all var(--dur-fast) var(--ease);
+}
+.check input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.check input:checked + .check__box {
+  background: var(--color-keepsake);
+  border-color: var(--color-keepsake);
+  color: #fff;
+}
+.check input:focus-visible + .check__box {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Feature grid (landing)
+   ============================================================ */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 520px;
+}
+.feature {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+.feature__title {
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.feature__desc {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: var(--color-border);
+  border: 0;
+}
+
+.hero-art {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  background: linear-gradient(160deg, #f6ede4 0%, #efe4d8 55%, #e9ddce 100%);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+/* autosave indicator */
+.autosave {
+  font-size: var(--text-small);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 400ms var(--ease);
+}
+.autosave--show {
+  opacity: 1;
+  transition: opacity 200ms var(--ease);
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-pop {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.page-in {
+  animation: page-in var(--dur-page) var(--ease);
+}
+
+@keyframes rec-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* spec C8: บังคับ reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Print (spec E: PDF via print stylesheet)
+   ============================================================ */
+/* ============================================================
+   Theme polish + decorative botanicals (ธีมอบอุ่น มีลายดอกไม้)
+   ============================================================ */
+:root {
+  --color-blossom: #e3b7ab; /* กลีบดอกไม้ประดับ */
+  --color-blossom-soft: #f3e4de;
+  --shadow-card: 0 18px 48px -24px rgba(107, 76, 54, 0.28);
+  --shadow-soft: 0 8px 24px -16px rgba(107, 76, 54, 0.22);
+}
+
+body {
+  background:
+    radial-gradient(120% 60% at 100% 0%, #f7ede3 0%, transparent 55%),
+    radial-gradient(90% 55% at 0% 100%, #f4ebe0 0%, transparent 50%),
+    var(--color-bg);
+  background-attachment: fixed;
+}
+
+/* การ์ดนุ่มขึ้น เงาอุ่นขึ้น มี position ไว้วางลายดอกไม้ */
+.card,
+.qcard,
+.feature,
+.sheet {
+  position: relative;
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.card {
+  box-shadow: var(--shadow-soft);
+}
+.qcard {
+  box-shadow: var(--shadow-card);
+}
+.feature {
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.feature:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ลายดอกไม้ประดับมุมการ์ด/หัวข้อ */
+.sprig {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.85;
+  color: var(--color-blossom);
+}
+.sprig--tr {
+  top: -6px;
+  right: 10px;
+}
+.sprig--bl {
+  bottom: -4px;
+  left: 12px;
+  transform: scaleX(-1);
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* chip / button ให้ลื่นขึ้น */
+.chip {
+  transition: border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.chip:active {
+  transform: scale(0.97);
+}
+.chip[aria-pressed="true"] {
+  box-shadow: 0 0 0 4px rgba(201, 143, 104, 0.1);
+}
+
+/* ============================================================
+   Card transition animations (อนิเมชั่นเปลี่ยนการ์ด)
+   ============================================================ */
+@keyframes card-out-right {
+  to {
+    transform: translateX(125%) rotate(7deg);
+    opacity: 0;
+  }
+}
+@keyframes card-out-left {
+  to {
+    transform: translateX(-125%) rotate(-7deg);
+    opacity: 0;
+  }
+}
+@keyframes card-out-up {
+  to {
+    transform: translateY(-48px) scale(0.96);
+    opacity: 0;
+  }
+}
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.card-out-right {
+  animation: card-out-right 340ms var(--ease) forwards;
+}
+.card-out-left {
+  animation: card-out-left 340ms var(--ease) forwards;
+}
+.card-out-up {
+  animation: card-out-up 320ms var(--ease) forwards;
+}
+.card-in {
+  animation: card-in 360ms var(--ease);
+}
+/* การ์ดถัดไปที่ซ้อนอยู่ข้างหลัง (ให้รู้สึกเป็นสำรับ) */
+.card-stack {
+  position: relative;
+}
+.card-behind {
+  position: absolute;
+  inset: 0;
+  transform: scale(0.94) translateY(14px);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  filter: saturate(0.9);
+}
+.card-front {
+  position: relative;
+  z-index: 1;
+}
+
+/* view transition นุ่มๆ เวลาเปลี่ยนหน้า (browser ที่รองรับ) */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-page);
+  }
+}
+
+/* ============================================================
+   Responsive - mobile first (spec C10)
+   ============================================================ */
+@media (max-width: 640px) {
+  .feature-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .navbar {
+    padding: 0 var(--space-2);
+  }
+  .navbar__brand {
+    font-size: var(--text-small);
+  }
+  .qcard {
+    min-height: 300px;
+  }
+  .sheet {
+    padding: var(--space-3);
+  }
+}
+@media (max-width: 380px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* จอกว้าง - การ์ดคำถามไม่กว้างเกินไป อ่านสบาย */
+@media (min-width: 900px) {
+  .qcard {
+    padding: 56px 48px;
+  }
+}
+
+/* ============================================================
+   Landing (ธีมสองคอลัมน์ตาม mockup)
+   ============================================================ */
+.lander-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 16px clamp(16px, 4vw, 40px);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.lander-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-decoration: none;
+}
+.lander-brand strong {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.lander-brand span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.lander-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 28px);
+}
+.lander-nav .navlink {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--text-small);
+  transition: color var(--dur-fast) var(--ease);
+}
+.lander-nav .navlink:hover {
+  color: var(--color-text);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  /* padding-block เท่านั้น - ปล่อยให้ .container คุมระยะขอบซ้าย-ขวา (กันชิดขอบมือถือ) */
+  padding-block: clamp(28px, 6vw, 72px);
+}
+.hero-copy {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.hero-copy p {
+  max-width: 44ch;
+}
+.hero-italic {
+  font-style: italic;
+  color: var(--color-primary-hover);
+  font-size: var(--text-h3);
+}
+.hero-frame {
+  position: relative;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  aspect-ratio: 5 / 6;
+  width: 100%;
+}
+.hint-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.feature-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  width: 100%;
+}
+.feature-strip__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: var(--space-3) var(--space-2);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.feature-strip__item:hover {
+  transform: translateY(-2px);
+}
+.feature-strip__icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+.feature-strip__title {
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.btn .btn-heart {
+  margin-right: 2px;
+}
+
+@media (max-width: 860px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-frame {
+    aspect-ratio: 16 / 11;
+    max-width: 540px;
+    margin: 0 auto;
+    order: -1; /* ภาพขึ้นก่อนบนมือถือ */
+  }
+  .hero-copy {
+    align-items: center;
+    text-align: center;
+  }
+  .hero-copy p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media (max-width: 720px) {
+  .feature-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .lander-nav .navlink {
+    display: none;
+  }
+  .lander-brand span {
+    display: none;
+  }
+  .lander-nav {
+    gap: 10px;
+  }
+  .lander-nav .btn--primary {
+    padding: 0 18px;
+  }
+}
+
+/* ============================================================
+   Landing - warm & rich (พื้นหลังอุ่น + เนื้อหา + reveal)
+   ============================================================ */
+.bg-decor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(70px);
+}
+.orb--1 {
+  width: 460px;
+  height: 460px;
+  top: -140px;
+  right: -90px;
+  background: radial-gradient(circle, #f4d8c1 0%, transparent 70%);
+  opacity: 0.55;
+}
+.orb--2 {
+  width: 420px;
+  height: 420px;
+  bottom: -160px;
+  left: -120px;
+  background: radial-gradient(circle, #e7dcc6 0%, transparent 70%);
+  opacity: 0.5;
+}
+.orb--3 {
+  width: 340px;
+  height: 340px;
+  top: 46%;
+  left: 58%;
+  background: radial-gradient(circle, #f0d6cd 0%, transparent 70%);
+  opacity: 0.35;
+}
+/* เกรนบางๆ ให้ความรู้สึกอุ่นแบบกระดาษ */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal.d1 {
+  transition-delay: 0.08s;
+}
+.reveal.d2 {
+  transition-delay: 0.16s;
+}
+.reveal.d3 {
+  transition-delay: 0.24s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* sway ลายดอกไม้ลอยเบาๆ */
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+.float {
+  animation: sway 7s var(--ease) infinite;
+  transform-origin: bottom center;
+}
+
+/* section rhythm */
+.section {
+  padding: clamp(44px, 8vw, 92px) 0;
+}
+.section-head-block {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+}
+.section-title {
+  font-size: clamp(24px, 4vw, 32px);
+  line-height: 1.4;
+}
+.lead {
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  max-width: 52ch;
+}
+
+/* "เสียงในหัว" 4 ด่าน */
+.voice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+.voice {
+  position: relative;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.voice__mark {
+  font-size: 44px;
+  line-height: 0.6;
+  color: var(--color-primary-soft);
+  font-weight: 700;
+}
+.voice__quote {
+  font-size: var(--text-h3);
+  line-height: 1.5;
+  color: var(--color-text);
+  margin-top: 8px;
+}
+.voice__name {
+  margin-top: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-primary-hover);
+}
+
+/* สิ่งที่เราเตรียมไว้ให้ */
+.give-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+.give {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.give:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+.give__icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+
+/* ตัวอย่างหมวดคำถาม */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.cat {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.cat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--color-border-strong);
+}
+.cat__label {
+  display: inline-block;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-keepsake);
+  background: var(--color-keepsake-soft);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.cat__sample {
+  margin-top: var(--space-2);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+/* 3 ขั้นตอน */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  counter-reset: step;
+}
+.step {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+.step__num {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--text-h3);
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+}
+
+/* บล็อกปิดอบอุ่น */
+.closing-block {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  border-radius: var(--radius-dialog);
+  border: 1px solid var(--color-border);
+  padding: clamp(40px, 7vw, 80px) clamp(24px, 5vw, 64px);
+  background: radial-gradient(120% 120% at 50% 0%, #fbeee2 0%, var(--color-card) 60%);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.landing-footer {
+  text-align: center;
+  padding: var(--space-5) var(--space-3) var(--space-6);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 760px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 820px) {
+  .cat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .voice-grid,
+  .give-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .cat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ปุ่มเพลงคลอ - มุมล่างซ้าย (ตรงข้าม autosave) */
+.music-toggle {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 45;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-card) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.music-toggle:hover {
+  transform: translateY(-2px);
+  color: var(--color-text);
+}
+.music-toggle:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 3px;
+}
+.music-toggle[aria-pressed="true"] {
+  color: var(--color-primary-hover);
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.music-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-primary);
+  animation: rec-ring 2.6s var(--ease) infinite;
+}
+
+/* ============================================================
+   ดอกไม้ตกแต่ง (watercolor จริง)
+   ============================================================ */
+.flower-deco {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  filter: drop-shadow(0 6px 14px rgba(107, 76, 54, 0.12));
+}
+
+/* hero-frame โชว์ดอกไม้ใหญ่ */
+.hero-frame {
+  background: linear-gradient(155deg, #f8efe4 0%, #f1e4d5 60%, #ecdccb 100%);
+}
+.hero-bloom {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 74%;
+  height: auto;
+  filter: drop-shadow(0 18px 34px rgba(107, 76, 54, 0.18));
+  z-index: 1;
+}
+
+/* ============================================================
+   Conversation card - แบบการ์ดในภาพ (quote marks + ดอกมุมขวาล่าง)
+   ============================================================ */
+.qcard {
+  overflow: hidden;
+}
+.qcard__quote {
+  position: absolute;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--color-primary);
+  opacity: 0.32;
+  z-index: 1;
+  user-select: none;
+}
+.qcard__quote--open {
+  top: 20px;
+  left: 26px;
+}
+.qcard__quote--close {
+  bottom: -6px;
+  left: 26px;
+}
+.qcard__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
+  padding: 0 8px;
+}
+.qcard__sub {
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+.qcard__flower {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  width: 132px;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 8px 16px rgba(107, 76, 54, 0.14));
+}
+@media (max-width: 640px) {
+  .qcard__flower {
+    width: 96px;
+  }
+  .qcard__quote {
+    font-size: 56px;
+  }
+}
+
+/* การ์ดตกแต่งบน landing ให้ clip ดอกมุมสวยๆ */
+.cat {
+  position: relative;
+  overflow: hidden;
+}
+/* กันข้อความชนดอกมุมขวาล่าง */
+.cat__sample {
+  padding-right: 40px;
+}
+
+/* ============================================================
+   เรื่องเล่าจากผู้สร้าง (about)
+   ============================================================ */
+.founder-letter {
+  position: relative;
+  overflow: hidden;
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: clamp(28px, 5vw, 56px);
+}
+.founder-letter__body p {
+  font-size: var(--text-body);
+  line-height: 1.95;
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+  max-width: none;
+  position: relative;
+  z-index: 1;
+}
+.founder-sign {
+  margin-top: var(--space-4);
+  font-weight: 600;
+  color: var(--color-primary-hover);
+  font-size: var(--text-body);
+  position: relative;
+  z-index: 1;
+}
+
+/* ปรับขนาดตัวอักษรทั้งเว็บ (data-textsize ที่ <html>) */
+:root[data-textsize="lg"] {
+  --text-h1: 46px;
+  --text-h2: 36px;
+  --text-h3: 27px;
+  --text-body: 21px;
+  --text-small: 18px;
+}
+:root[data-textsize="xl"] {
+  --text-h1: 52px;
+  --text-h2: 40px;
+  --text-h3: 30px;
+  --text-body: 24px;
+  --text-small: 20px;
+}
+.fontsize-btn {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  min-height: 40px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  font-family: inherit;
+  line-height: 1;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.fontsize-btn:hover {
+  border-color: var(--color-border-strong);
+}
+.fontsize-btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.fontsize-btn span[data-on="true"] {
+  color: var(--color-primary-hover);
+  font-weight: 700;
+}
+
+/* แถบเต็มขอบสลับสี (full-bleed bands) */
+.band--soft {
+  background: color-mix(in srgb, var(--color-primary-soft) 55%, var(--color-bg));
+}
+.band--cream {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f7ede2 0%, #f2e5d6 100%);
+}
+.band--keepsake {
+  background: var(--color-keepsake-soft);
+}
+
+/* ข้อความจากผู้สร้างบน landing - ข้อความล้วน ไม่มีกรอบ */
+.founder-note {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  margin: 0 auto;
+  padding-inline: var(--space-3); /* กันชิดขอบในแถบเต็มจอบนมือถือ */
+  text-align: center;
+}
+.founder-note__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: var(--space-2);
+}
+.founder-note__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+.founder-note__body {
+  margin-top: var(--space-4);
+  text-align: left; /* ย่อหน้ายาว อ่านง่ายกว่าเมื่อชิดซ้าย */
+}
+.founder-note__body p {
+  font-size: var(--text-body);
+  line-height: 1.9;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+  max-width: none;
+}
+.founder-note__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   Resources - การ์ดมีภาพปก
+   ============================================================ */
+.hotline-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-primary);
+  background: linear-gradient(135deg, #f7e6d6 0%, var(--color-primary-soft) 100%);
+  padding: clamp(24px, 4vw, 40px);
+  box-shadow: var(--shadow-soft);
+}
+.hotline-card__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-hover);
+  box-shadow: var(--shadow-soft);
+}
+
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+.res-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  transition: transform var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease);
+}
+.res-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+.res-card__cover {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.res-card__cover img {
+  height: 128px;
+  width: auto;
+  filter: drop-shadow(0 10px 18px rgba(107, 76, 54, 0.16));
+}
+.res-card__body {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.res-card__body .btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.res-featured {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+.res-featured__cover {
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+}
+.res-featured__cover img {
+  height: 170px;
+  width: auto;
+  filter: drop-shadow(0 12px 22px rgba(107, 76, 54, 0.18));
+}
+.res-featured__body {
+  padding: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .res-grid {
+    grid-template-columns: 1fr;
+  }
+  .res-featured {
+    grid-template-columns: 1fr;
+  }
+  .res-featured__cover {
+    padding-bottom: 0;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+/* ============================================================
+   Print / PDF - ให้ออกมาเหมือนสมุดความทรงจำ
+   ============================================================ */
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #3f332d;
+  }
+  body {
+    font-size: 12pt;
+    line-height: 1.65;
+  }
+
+  /* ซ่อน UI / ของตกแต่ง ที่ไม่ต้องพิมพ์ */
+  .no-print,
+  .navbar,
+  .lander-header,
+  .music-toggle,
+  .fontsize-btn,
+  .autosave,
+  .bg-decor,
+  .grain,
+  .flower-deco,
+  .hero-frame,
+  .orb,
+  .btn,
+  .qcard__flower,
+  .qcard__quote {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+
+  /* ยืดเนื้อหาเต็มหน้า ไม่มีพื้นหลังแถบ */
+  .container,
+  .container--wide,
+  .print-page {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .band--soft,
+  .band--cream,
+  .band--keepsake {
+    background: #fff !important;
+  }
+
+  /* การ์ด/ข้อความ ไม่ให้ขาดกลางหน้า */
+  .card,
+  .qcard {
+    box-shadow: none !important;
+    border: 1px solid #e6ddd3 !important;
+    background: #fff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 12px;
+  }
+  h1,
+  h2,
+  h3 {
+    color: #3f332d;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .divider {
+    border: 0;
+    border-top: 1px solid #e6ddd3;
+  }
+  /* textarea พิมพ์ให้เห็นข้อความที่พิมพ์ไว้ */
+  textarea {
+    border: none !important;
+    resize: none;
+    height: auto !important;
+    color: #3f332d;
+  }
+}
