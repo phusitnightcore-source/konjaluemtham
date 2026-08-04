@@ -8,7 +8,7 @@ import MusicToggle from "@/components/MusicToggle";
 import PwaRegister from "@/components/PwaRegister";
 import FontSizeApply from "@/components/FontSize";
 
-// Google Analytics 4 - เก็บแค่ page view/event ไม่เห็นเนื้อหาที่ผู้ใช้เขียน
+// Google Analytics 4 - เก็บแค่ page view/event ไม่เห็นเนื้อหาที่ผู้ใช้เขียน....
 const GA_ID = "G-CZ4SC0EDWH";
 
 const notoThai = Noto_Sans_Thai({
