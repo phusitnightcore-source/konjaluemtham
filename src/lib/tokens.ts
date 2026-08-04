@@ -96,48 +96,78 @@ export function relationshipLabel(answers: Answers): string {
   return found ? found.label : "เขา";
 }
 
+// สุ่มลำดับ (Fisher-Yates)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// กระจายหมวดแบบ round-robin: หมุนทีละหมวด หมวดละ 1 ใบวนไปเรื่อยๆ
+// → ทุกหมวดโผล่ตั้งแต่รอบแรก หลากหลาย ไม่ซ้ำติดกัน (จนกว่าจะเหลือหมวดเดียว)
+// การ์ดที่ตรงความกลัวถูกดันขึ้นก่อนภายในหมวดของตัวเอง
+function spreadByCategory(items: Phrase[], matches: (p: Phrase) => boolean): Phrase[] {
+  const groups: Record<string, Phrase[]> = {};
+  for (const p of items) (groups[p.category] ||= []).push(p);
+  for (const k in groups) {
+    groups[k] = shuffle(groups[k]).sort(
+      (a, b) => (matches(b) ? 1 : 0) - (matches(a) ? 1 : 0),
+    );
+  }
+  const order = shuffle(Object.keys(groups)); // ลำดับหมวดที่จะวน (สุ่ม)
+  const result: Phrase[] = [];
+  let remaining = items.length;
+  while (remaining > 0) {
+    for (const cat of order) {
+      const bucket = groups[cat];
+      if (bucket.length > 0) {
+        result.push(bucket.shift()!);
+        remaining--;
+      }
+    }
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------
-// สร้างชุดการ์ด - จัดลำดับปลอดภัย: เปิด → เบา → ลึก (ตามความกลัว) → ปิดอบอุ่น
-// ไม่มีตัวนับ "ใบที่ 5 จาก 40" (spec C6.3)
+// สร้างชุดการ์ด - เปิดด้วยบทเปิด, ตรงกลางสุ่มคละหมวด, ปิดด้วยความอบอุ่น (spec C6.3)
+// ไม่มีตัวนับ "ใบที่ 5 จาก 40"
 // ---------------------------------------------------------------
 export function buildDeck(answers: Answers): Phrase[] {
   const fear = answers.fear;
   const condition = answers.condition;
+  const matchesFear = (p: Phrase) =>
+    fear && fear !== "unsure" ? (p.fears ?? []).includes(fear) : false;
 
   // ถ้าสื่อสารไม่ได้แล้ว → ใช้ชุด "พูดข้างเดียว" เป็นหลัก
   if (condition === "nonverbal") {
-    const oneway = PHRASES.filter((p) => p.category === "oneway");
-    const closing = PHRASES.filter((p) => p.category === "closing");
+    const oneway = shuffle(PHRASES.filter((p) => p.category === "oneway"));
+    const closing = shuffle(PHRASES.filter((p) => p.category === "closing"));
     return [...oneway, ...closing];
   }
 
-  const openers = PHRASES.filter((p) => p.stage === "open");
+  const openers = shuffle(PHRASES.filter((p) => p.stage === "open")).slice(0, 3);
   const light = PHRASES.filter((p) => p.stage === "light");
   const deepAll = PHRASES.filter(
     (p) => p.stage === "deep" && p.category !== "recovery",
   );
-  const closing = PHRASES.filter((p) => p.stage === "close");
+  const closing = shuffle(PHRASES.filter((p) => p.stage === "close"));
 
-  // เรียงการ์ดลึกตามความกลัว: ที่ตรงความกลัวมาก่อน
-  const matchesFear = (p: Phrase) =>
-    fear && fear !== "unsure" ? (p.fears ?? []).includes(fear) : false;
+  // เตรียมชุดคำถามลึก: ถ้าเหนื่อยเร็วก็ลดจำนวน (เอาที่ตรงความกลัวไว้ก่อน)
+  let deepPool = deepAll;
+  if (condition === "tired" || condition === "sometimes") {
+    const matched = shuffle(deepAll.filter(matchesFear));
+    const rest = shuffle(deepAll.filter((p) => !matchesFear(p)));
+    deepPool = [...matched, ...rest].slice(0, 10);
+  }
 
-  const deepPrioritized = [...deepAll].sort((a, b) => {
-    const am = matchesFear(a) ? 0 : 1;
-    const bm = matchesFear(b) ? 0 : 1;
-    return am - bm;
-  });
+  // ตรงกลาง = คำถามเบา + คำถามลึก คละหมวดกระจายกัน
+  const middle = spreadByCategory([...light, ...deepPool], matchesFear);
 
-  // ถ้าเขาเหนื่อยเร็ว → ใส่คำถามเบาเยอะขึ้น ลดคำถามลึกลง
-  const deepCount =
-    condition === "tired" || condition === "sometimes" ? 10 : deepPrioritized.length;
-
-  return [
-    ...openers.slice(0, 6),
-    ...light,
-    ...deepPrioritized.slice(0, deepCount),
-    ...closing,
-  ];
+  return [...openers, ...middle, ...closing.slice(0, 2)];
 }
 
 // 3 คำถามสำรอง เมื่อเขาเหนื่อย (spec C6.4 Backup Plan)
@@ -149,7 +179,7 @@ export function backupThree(answers: Answers): Phrase[] {
   const matched = pool.filter(
     (p) => fear && fear !== "unsure" && (p.fears ?? []).includes(fear),
   );
-  const picked = (matched.length >= 2 ? matched : pool).slice(0, 2);
+  const picked = shuffle(matched.length >= 2 ? matched : pool).slice(0, 2);
   const close = PHRASES.find((p) => p.id === "cl-1");
   return close ? [...picked, close] : picked;
 }
