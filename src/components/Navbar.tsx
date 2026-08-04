@@ -16,8 +16,6 @@ export default function Navbar({ bag }: { bag?: number }) {
     else router.push("/");
   }
 
-
-
   return (
     <nav className="navbar no-print">
       <Link href="/" className="navbar__brand">
