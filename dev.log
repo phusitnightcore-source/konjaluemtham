@@ -32,3 +32,116 @@
 ✓ Compiled in 159ms
  GET /resources 200 in 813ms (next.js: 493ms, application-code: 320ms)
  GET /resources 200 in 183ms (next.js: 26ms, application-code: 157ms)
+ GET /resources 200 in 416ms (next.js: 19ms, application-code: 397ms)
+ GET /resources 200 in 172ms (next.js: 15ms, application-code: 157ms)
+ GET /resources 200 in 165ms (next.js: 17ms, application-code: 148ms)
+ GET /manifest.webmanifest 200 in 246ms (next.js: 192ms, application-code: 54ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+      <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+        <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+          <LoadingBoundary name="resources/" loading={null}>
+            <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/resources" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="resources/...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function ResourcesPage} serverProvidedParams={{...}}>
+                        <ResourcesPage params={Promise} searchParams={Promise}>
+                          <div className="page">
+                            <div>
+                            <Navbar>
+                            <main className="container ..." style={{flex:1, ...}}>
+                              <div>
+                              <div>
+                              <div>
+                              <div
++                               className="res-grid"
+-                               className="stack"
+                                style={{
++                                 marginBottom: "var(--space-4)"
+-                                 row-gap: ""
+-                                 column-gap: ""
+-                                 margin-bottom: "var(--space-4)"
+                                }}
+                              >
+                                <div
++                                 className="res-card"
+-                                 className="res-featured"
+                                >
+                                  <div
++                                   className="res-card__cover"
+-                                   className="res-featured__cover"
+                                    style={{background:"linear-gra..."}}
+                                  >
+                                  <div
++                                   className="res-card__body"
+-                                   className="res-featured__body"
+                                  >
+                                    <h3>
+                                    <p
+                                      className="muted"
+                                      style={{
++                                       fontSize: "var(--text-small)"
+-                                       font-size: "var(--text-small)"
+-                                       margin-top: ""
+-                                       margin-right: ""
+-                                       margin-bottom: ""
+-                                       margin-left: ""
+                                      }}
+                                    >
++                                     สมุดเบาใจ · ไพ่ไขชีวิต · การ์ดแชร์กัน - เครื่องมือช่วยเปิดบทสนทนาเรื่องช่วงท้ายขอ...
+                                    ...
+                                <div
++                                 className="res-card"
+-                                 className="res-featured"
+                                >
+                                  <div
++                                   className="res-card__cover"
+-                                   className="res-featured__cover"
+                                    style={{background:"linear-gra..."}}
+                                  >
+                                  <div
++                                   className="res-card__body"
+-                                   className="res-featured__body"
+                                  >
+                                    <h3>
+                                    <p
+                                      className="muted"
+                                      style={{
++                                       fontSize: "var(--text-small)"
+-                                       font-size: "var(--text-small)"
+-                                       margin-top: ""
+-                                       margin-right: ""
+-                                       margin-bottom: ""
+-                                       margin-left: ""
+                                      }}
+                                    >
++                                     ความรู้และการดูแลแบบประคับประคอง (palliative care) เพื่อคุณภาพชีวิตช่วงท้าย
+                                    ...
+                              ...
+                            ...
+                    ...
+                  ...
+        ...
+ 
+ GET /resources 200 in 155ms (next.js: 15ms, application-code: 141ms)
+ GET /resources 200 in 221ms (next.js: 15ms, application-code: 206ms)
+ GET /resources 200 in 176ms (next.js: 20ms, application-code: 156ms)
+ GET /resources 200 in 175ms (next.js: 17ms, application-code: 158ms)
+ GET /manifest.webmanifest 200 in 37ms (next.js: 14ms, application-code: 23ms)
+ GET / 200 in 123ms (next.js: 43ms, application-code: 80ms)
+ GET /manifest.webmanifest 200 in 36ms (next.js: 13ms, application-code: 23ms)
