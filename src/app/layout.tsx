@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { StoreProvider } from "@/lib/store";
 import Autosave from "@/components/Autosave";
 import MusicToggle from "@/components/MusicToggle";
 import PwaRegister from "@/components/PwaRegister";
 import FontSizeApply from "@/components/FontSize";
+
+// Google Analytics 4 - เก็บแค่ page view/event ไม่เห็นเนื้อหาที่ผู้ใช้เขียน
+const GA_ID = "G-0WCW98YRN4";
 
 const notoThai = Noto_Sans_Thai({
   variable: "--font-noto-thai",
@@ -63,6 +67,18 @@ export default function RootLayout({
           <PwaRegister />
           <FontSizeApply />
         </StoreProvider>
+
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
       </body>
     </html>
   );
