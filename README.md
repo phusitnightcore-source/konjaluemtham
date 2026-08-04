@@ -43,3 +43,4 @@ Export PDF ใช้ print stylesheet (`@media print`) — กดปุ่ม "�
 
 MVP นี้ครอบคลุม Phase 1–4 ของ roadmap (Questionnaire, Cards, PDF, Meal, Memory อัดเสียง, Letter, Resources)
 ก่อนขยายต่อ: เอาคลังคำพูด (ส่วน B) ไปให้คนที่เพิ่งสูญเสียอ่าน — คอนเทนต์ต้องมาก่อน UI
+"# konjaluemtham" 
